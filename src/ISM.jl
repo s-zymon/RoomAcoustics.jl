@@ -60,12 +60,12 @@ function ISM_RectangularRoom_core(
     tx::SVector{3, T},                  # transmitter position
     rx::SVector{3, T},                  # reveiver position
     B::SMatrix{3, 3, T},                # receiver orientation
-    dp::DirectivityPattern,             # Receiver directivity pattern
+    dp::AbstractDirectivityPattern,     # Receiver directivity pattern
     L::Tuple{T, T, T},                  # room size (Lx, Ly, Lz)
     β::Tuple{T, T, T, T, T, T},         # Reflection coefficients (βx1, βx2, βy1, βy2, βz1, βz2)
     c::T,                               # velocity of the wave
     fs::T,                              # sampling frequeyncy
-    order::Tuple{<:Int, <:Int}, # order of reflections; min max
+    order::Tuple{<:Int, <:Int},         # order of reflections; min max
     Nh::Integer,                        # h lenght in samples
     Wd::T,                              # Window width
     ISD::T,                             # Random displacement of image source
@@ -103,7 +103,7 @@ function ISM_RectangularRoom_core!(
     tx::SVector{3, T},                  # transmitter position
     rx::SVector{3, T},                  # reveiver position
     B::SMatrix{3, 3, T},                # receiver orientation
-    dp::DirectivityPattern,             # Receiver directivity pattern
+    dp::AbstractDirectivityPattern,     # Receiver directivity pattern
     L::Tuple{T, T, T},                  # room size (Lx, Ly, Lz)
     β::Tuple{T, T, T, T, T, T},         # Reflection coefficients (βx1, βx2, βy1, βy2, βz1, βz2)
     c::T,                               # velocity of the wave
