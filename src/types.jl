@@ -4,7 +4,7 @@ export  Omnidirectional,
         Hypercardioid,
         Bidirectional
 
-export TxRx
+export TxRx, TxRxArray
 
 export Room, RectangularRoom
 export RIRConfig, ISMConfig
@@ -38,6 +38,12 @@ end
 
 function TxRx(position, B=SMatrix{3,3}(1.0I), d=Omnidirectional)
     TxRx(position |> SVector{3}, B, d)
+end
+
+struct TxRxArray{T<:Real} <: AbstractTxRx
+    p::Vector{<:TxRx{T}}    # list of TxRxes in the local frame
+    origin::SVector{3, T}   # Position of the local origin in reference to the global origin
+    B::SMatrix{3, 3, T}     # Orientation of the array (local -> global)
 end
 
 

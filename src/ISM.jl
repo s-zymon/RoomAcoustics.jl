@@ -1,5 +1,15 @@
 export ISM
 
+function ISM(
+    array::TxRxArray,
+    tx::TxRx,
+    room::Room,
+    config::ISMConfig;
+)
+    Pn, o, B = array.p, array.origin, array.B
+    [ISM(TxRx(B*p.position+o, B*p.B, p.directivity), tx, room, config) for p in Pn]
+end
+
 
 """
 
