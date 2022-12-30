@@ -1,9 +1,10 @@
 name = "RoomAcoustics"
 uuid = "9b22aa7e-b0d0-4fe8-9c3b-2b8bf774f735"
 authors = ["zymon"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
+DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
