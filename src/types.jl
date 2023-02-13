@@ -1,50 +1,7 @@
-export  Omnidirectional,
-        Subcardioid,
-        Cardioid,
-        Hypercardioid,
-        Bidirectional
-
-export TxRx, TxRxArray
 
 export Room, RectangularRoom
 export RIRConfig, ISMConfig
 
-
-
-
-abstract type AbstractDirectivityPattern end
-struct OmnidirectionalPattern <: AbstractDirectivityPattern end
-struct SubcardioidPattern     <: AbstractDirectivityPattern end
-struct CardioidPattern        <: AbstractDirectivityPattern end
-struct HypercardioidPattern   <: AbstractDirectivityPattern end
-struct BidirectionalPattern   <: AbstractDirectivityPattern end
-
-
-const Omnidirectional = OmnidirectionalPattern()
-const Subcardioid     = SubcardioidPattern()
-const Cardioid        = CardioidPattern()
-const Hypercardioid   = HypercardioidPattern()
-const Bidirectional   = BidirectionalPattern()
-
-
-
-abstract type AbstractTxRx end
-
-struct TxRx{T<:Real} <: AbstractTxRx
-    position::SVector{3, T}                 # Position
-    B::SMatrix{3, 3, T}                     # Orientation
-    directivity::AbstractDirectivityPattern # Directivity pattern
-end
-
-function TxRx(position, B=SMatrix{3,3}(1.0I), d=Omnidirectional)
-    TxRx(position |> SVector{3}, B, d)
-end
-
-struct TxRxArray{T<:Real} <: AbstractTxRx
-    p::Vector{<:TxRx{T}}    # list of TxRxes in the local frame
-    origin::SVector{3, T}   # Position of the local origin in reference to the global origin
-    B::SMatrix{3, 3, T}     # Orientation of the array (local -> global)
-end
 
 
 abstract type Room end

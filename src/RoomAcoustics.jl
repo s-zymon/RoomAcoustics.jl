@@ -7,9 +7,11 @@ using DSP
 using Random
 using Random: GLOBAL_RNG
 
+using TxRxModels
+using TxRxModels: AbstractDirectivityPattern
+
 include("types.jl")
 include("utils.jl")
-include("directivity.jl")
 include("ISM.jl")
 include("moving_sources.jl")
 

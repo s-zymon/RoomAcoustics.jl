@@ -82,7 +82,7 @@ function ISM_RectangularRoom_core(
     lrng::AbstractRNG                   # random number generator
 )::AbstractVector{T} where {T<:AbstractFloat}
 
-    # Allocate memory for impulose response
+    # Allocate memory for the impulose response
     h = zeros(T, Nh)
 
     # Call
