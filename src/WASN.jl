@@ -49,27 +49,27 @@ function synthesise(
     fs = first(nodes).fs
 
     # Synthesise individual events for given nodes
-    e_signals, h_s = synth_events(nodes, events, room, rir_config)
+    e_signal, h_s = synth_events(nodes, events, room, rir_config)
 
     # Find length of the output signal
     δ_max = [node.δ for node ∈ nodes] |> maximum;
-    N = [ceil(Int, (events[j].emission + δ_max)*fs) + length(e_signals[1, j][1]) for j ∈ eachindex(events)] |> maximum
+    N = [ceil(Int, (events[j].emission + δ_max)*fs) + length(e_signal[1, j][1]) for j ∈ eachindex(events)] |> maximum
 
     # Allocate memory for output signals
     output = [zeros(N, node.rx.p |> length) for node ∈ nodes]
 
     for i ∈ eachindex(nodes), j ∈ eachindex(events)
         shift_n = floor(Int, (events[j].emission + nodes[i].δ)*fs)
-        event = e_signals[i,j]
+        event = e_signal[i,j]
         for (idx, channel) in enumerate(event)
             output[i][shift_n:shift_n+length(channel)-1, idx] .= channel
         end
     end
 
     return (
-        node_output   = output,
-        event_signals = e_signals,
-        h             = h_s,
+        node   = output,
+        event  = e_signal,
+        h      = h_s,
     )
 end
 
