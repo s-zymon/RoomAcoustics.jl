@@ -1,12 +1,12 @@
 
-export Room, RectangularRoom
-export RIRConfig, ISMConfig
+export AbstractRoom, RectangularRoom
+export AbstractRIRConfig, ISMConfig
 
 
 
-abstract type Room end
+abstract type AbstractRoom end
 
-struct RectangularRoom{T<:Real} <: Room
+struct RectangularRoom{T<:Real} <: AbstractRoom
     c::T
     L::Tuple{T, T, T}
     β::Tuple{T, T, T, T, T, T}
@@ -14,12 +14,12 @@ end
 
 
 
-abstract type RIRConfig end
+abstract type AbstractRIRConfig end
 
 """
 
 """
-struct ISMConfig{T<:Real, I<:Integer, R<:AbstractRNG} <: RIRConfig
+struct ISMConfig{T<:Real, I<:Integer, R<:AbstractRNG} <: AbstractRIRConfig
     order::Tuple{I, I}  # Order of reflection [low, high]
     fs::T               # Sampling frequency
     N::I                # Number of samples in impulse response

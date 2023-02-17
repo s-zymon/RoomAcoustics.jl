@@ -3,7 +3,7 @@ export ISM
 function ISM(
     array::TxRxArray,
     tx::TxRx,
-    room::Room,
+    room::AbstractRoom,
     config::ISMConfig;
 )
     Pn, o, B = array.p, array.origin, array.B
@@ -17,7 +17,7 @@ end
 function ISM(
     rxs::AbstractVector{<:TxRx},
     tx::TxRx,
-    room::Room,
+    room::AbstractRoom,
     config::ISMConfig;
 )
 	[ISM(rx, tx, room, config) for rx in rxs]

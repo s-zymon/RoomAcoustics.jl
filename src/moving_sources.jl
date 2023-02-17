@@ -7,8 +7,8 @@ function synth_movement(
     rx_path::AbstractVector{SVector{3, T}},
     signal::AbstractVector{T},
     tx::TxRx{T},
-    room::Room,
-    config::RIRConfig,
+    room::AbstractRoom,
+    config::AbstractRIRConfig,
     W_max::Integer = 2^11,
 ) where {T<:Real}
     P, N = length(rx_path), length(signal)
