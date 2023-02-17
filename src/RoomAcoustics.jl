@@ -15,4 +15,6 @@ include("utils.jl")
 include("ISM.jl")
 include("moving_sources.jl")
 
+include("WASN.jl")
+
 end # module
