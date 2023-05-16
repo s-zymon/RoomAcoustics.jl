@@ -15,6 +15,7 @@ include("utils.jl")
 include("ISM.jl")
 include("moving_sources.jl")
 
+export WASN
 include("WASN.jl")
 
 end # module

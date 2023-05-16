@@ -1,28 +1,29 @@
 export ISM
 
 function ISM(
+    tx::TxRx,
     array::TxRxArray,
-    tx::TxRx,
     room::AbstractRoom,
     config::ISMConfig;
 )
-    Pn, o, B = array.p, array.origin, array.B
-    [ISM(TxRx(B*p.position+o, B*p.B, p.directivity), tx, room, config) for p in Pn]
+    rxs, origin, B = array.txrx, array.origin, array.B
+    l2g = rx -> TxRx(B * rx.position + origin, B * rx.B, rx.directivity)
+    [ISM(tx, rx |> l2g, room, config) for rx in rxs]
 end
+
 
 
 """
 
 """
 function ISM(
+    tx::TxRx,
     rxs::AbstractVector{<:TxRx},
-    tx::TxRx,
     room::AbstractRoom,
     config::ISMConfig;
 )
-	[ISM(rx, tx, room, config) for rx in rxs]
+    [ISM(rx, tx, room, config) for rx in rxs]
 end
-
 
 
 
@@ -30,8 +31,8 @@ end
 
 """
 function ISM(
-    rx::TxRx,
     tx::TxRx,
+    rx::TxRx,
     room::RectangularRoom,
     config::ISMConfig;
 )
@@ -53,9 +54,9 @@ function ISM(
 
     if config.hp
         return AllenBerkley_highpass100(h, config.fs)
-        # Zmień to na funkcie operującą na zaalokowanym już h
+        # TODO: Zmień to na funkcie operującą na zaalokowanym już h
         # AllenBerkley_highpass100!(h, config.fs)
-        #return h
+        # return h
     else
         return h
     end
@@ -67,15 +68,15 @@ end
 
 """
 function ISM_RectangularRoom_core(
-    tx::SVector{3, T},                  # transmitter position
-    rx::SVector{3, T},                  # reveiver position
-    B::SMatrix{3, 3, T},                # receiver orientation
+    tx::SVector{3,T},                  # transmitter position
+    rx::SVector{3,T},                  # reveiver position
+    B::SMatrix{3,3,T},                # receiver orientation
     dp::AbstractDirectivityPattern,     # Receiver directivity pattern
-    L::Tuple{T, T, T},                  # room size (Lx, Ly, Lz)
-    β::Tuple{T, T, T, T, T, T},         # Reflection coefficients (βx1, βx2, βy1, βy2, βz1, βz2)
+    L::Tuple{T,T,T},                  # room size (Lx, Ly, Lz)
+    β::Tuple{T,T,T,T,T,T},         # Reflection coefficients (βx1, βx2, βy1, βy2, βz1, βz2)
     c::T,                               # velocity of the wave
     fs::T,                              # sampling frequeyncy
-    order::Tuple{<:Int, <:Int},         # order of reflections; min max
+    order::Tuple{<:Int,<:Int},         # order of reflections; min max
     Nh::Integer,                        # h lenght in samples
     Wd::T,                              # Window width
     ISD::T,                             # Random displacement of image source
@@ -110,15 +111,15 @@ end
 """
 function ISM_RectangularRoom_core!(
     h::AbstractVector{<:T},
-    tx::SVector{3, T},                  # transmitter position
-    rx::SVector{3, T},                  # reveiver position
-    B::SMatrix{3, 3, T},                # receiver orientation
+    tx::SVector{3,T},                  # transmitter position
+    rx::SVector{3,T},                  # reveiver position
+    B::SMatrix{3,3,T},                # receiver orientation
     dp::AbstractDirectivityPattern,     # Receiver directivity pattern
-    L::Tuple{T, T, T},                  # room size (Lx, Ly, Lz)
-    β::Tuple{T, T, T, T, T, T},         # Reflection coefficients (βx1, βx2, βy1, βy2, βz1, βz2)
+    L::Tuple{T,T,T},                  # room size (Lx, Ly, Lz)
+    β::Tuple{T,T,T,T,T,T},         # Reflection coefficients (βx1, βx2, βy1, βy2, βz1, βz2)
     c::T,                               # velocity of the wave
     fs::T,                              # sampling frequeyncy
-    order::Tuple{<:Int, <:Int},         # order of reflections; min max
+    order::Tuple{<:Int,<:Int},         # order of reflections; min max
     Wd::T,                              # Window width
     ISD::T,                             # Random displacement of image source
     lrng::AbstractRNG                   # random number generator
@@ -128,7 +129,7 @@ function ISM_RectangularRoom_core!(
     Nh = length(h)
 
     # Samples to distance coefficient [m]
-    Γ = c/fs
+    Γ = c / fs
 
     # Transform size of the room from meters to samples
     Lₛ = L ./ Γ
@@ -158,7 +159,7 @@ function ISM_RectangularRoom_core!(
             if o_min <= o && (o <= o_max || o_max == -1)
                 # Compute Rp part
                 for i = 1:3
-                    Rp[i] =  (1 .- 2 * p[i]) * tx[i] - rx[i]
+                    Rp[i] = (1 .- 2 * p[i]) * tx[i] - rx[i]
                 end
 
                 # Position of [randomized] image source for given permutation
@@ -174,30 +175,30 @@ function ISM_RectangularRoom_core!(
                 dist = norm(tx_isp)
 
                 # Propagation time between receiver and image source
-                τ = dist/c
+                τ = dist / c
 
-                if τ <= Nh/fs # Check if it still in transfer function range
+                if τ <= Nh / fs # Check if it still in transfer function range
 
                     # Compute value of reflection coefficients
-                    b .=  β .^ abs.((n-q, n, l-j, l, m-k, m))
+                    b .= β .^ abs.((n - q, n, l - j, l, m - k, m))
 
                     # Direction of Arrival of ray
-                    DoA .= tx_isp./dist
+                    DoA .= tx_isp ./ dist
 
                     # Compute receiver directivity gain
                     DG = directivity_pattern(SVector{3}(DoA), B, dp)
 
                     # Compute attenuation coefficient
-                    A = DG * prod(b)/(4π * dist)
+                    A = DG * prod(b) / (4π * dist)
 
                     # Compute range of samples in transfer function
-                    i_s = max(ceil(Int, (τ-Wd/2)*fs)+1, 1)  # start
-                    i_e = min(floor(Int, (τ+Wd/2)*fs)+1, Nh) # end
+                    i_s = max(ceil(Int, (τ - Wd / 2) * fs) + 1, 1)  # start
+                    i_e = min(floor(Int, (τ + Wd / 2) * fs) + 1, Nh) # end
 
                     # Insert yet another impulse into transfer function
                     for i ∈ i_s:i_e
-                        t = (i-1)/fs - τ # time signature
-                        w = 0.5 * (1.0 + cos(2π*t/Wd)) # Hann window
+                        t = (i - 1) / fs - τ # time signature
+                        w = 0.5 * (1.0 + cos(2π * t / Wd)) # Hann window
                         h[i] += w * A * sinc(fs * t) # sinc
                     end
                 end

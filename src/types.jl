@@ -8,8 +8,8 @@ abstract type AbstractRoom end
 
 struct RectangularRoom{T<:Real} <: AbstractRoom
     c::T
-    L::Tuple{T, T, T}
-    β::Tuple{T, T, T, T, T, T}
+    L::Tuple{T,T,T}
+    β::Tuple{T,T,T,T,T,T}
 end
 
 
@@ -19,8 +19,8 @@ abstract type AbstractRIRConfig end
 """
 
 """
-struct ISMConfig{T<:Real, I<:Integer, R<:AbstractRNG} <: AbstractRIRConfig
-    order::Tuple{I, I}  # Order of reflection [low, high]
+struct ISMConfig{T<:Real,I<:Integer,R<:AbstractRNG} <: AbstractRIRConfig
+    order::Tuple{I,I}  # Order of reflection [low, high]
     fs::T               # Sampling frequency
     N::I                # Number of samples in impulse response
     Wd::T               # Single impulse width

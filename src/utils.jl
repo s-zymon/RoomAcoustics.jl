@@ -5,11 +5,12 @@ export h2RT60, Sabine_RT60
 
 """
 function h2RT60(h::AbstractVector{<:Number}, Fs::Real)
-    cs = cumsum(reverse(h.^2))
-    edc = 10*log10.(reverse(cs./cs[end])) # energy decay curve
+    dB(x) = 10log10(x)
+    normalize(x) = x ./ x[begin]
+    edc = h .|> abs2 |> reverse |> cumsum |> reverse |> normalize .|> dB
 
     ind = findfirst(edc .<= -60. )
-    if ind == nothing 
+    if ind === nothing 
         rt = length(h)/Fs 
     else
         rt = ind/Fs
