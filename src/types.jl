@@ -1,7 +1,7 @@
 
 export AbstractRoom, RectangularRoom
 export AbstractRIRConfig, ISMConfig
-
+export Node, Event
 
 
 abstract type AbstractRoom end
@@ -42,3 +42,25 @@ function ISMConfig(
 end
 
 
+struct Node{T<:Real}
+    rx::TxRxArray{T}
+    fs::T
+    δ::T
+    function Node(rx, fs::T, δ::T = 0.0) where T
+        δ < 0.0 && error("δ < 0")
+        fs < 0.0 && error("fs < 0")
+        new{T}(rx, fs, δ)
+    end
+end
+
+struct Event{T<:Real, V<:AbstractVector{<:T}} # NOTE: TxNode może będzie lepszą nazwa?
+    tx::TxRx{T}
+    emission::T
+    fs::T
+    signal::V
+    function Event(tx, emission::T, fs::T, signal::V) where {T, V}
+        emission < 0.0 && error("emission < 0")
+        fs < 0.0 && error("fs < 0")
+        new{T, V}(tx, emission, fs, signal)
+    end
+end

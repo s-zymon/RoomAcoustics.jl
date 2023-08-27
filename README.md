@@ -4,7 +4,7 @@
 
 
 ```julia
-] add https://git.sr.ht/~zymon/RoomAcoustics.jl
+] add https://codeberg.org/zymon/RoomAcoustics.jl
 ```
 
 

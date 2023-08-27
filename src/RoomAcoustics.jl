@@ -3,9 +3,11 @@ module RoomAcoustics
 using LinearAlgebra
 using StaticArrays
 using Statistics
-using DSP
 using Random
 using Random: GLOBAL_RNG
+
+using LoopVectorization
+using DSP: conv
 
 using TxRxModels
 using TxRxModels: AbstractDirectivityPattern
@@ -15,7 +17,6 @@ include("utils.jl")
 include("ISM.jl")
 include("moving_sources.jl")
 
-export WASN
-include("WASN.jl")
+include("node_event.jl")
 
 end # module

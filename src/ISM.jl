@@ -2,11 +2,11 @@ export ISM
 
 function ISM(
     tx::TxRx,
-    array::TxRxArray,
+    rx_array::TxRxArray,
     room::AbstractRoom,
     config::ISMConfig;
 )
-    rxs, origin, B = array.txrx, array.origin, array.B
+    rxs, origin, B = rx_array.txrx, rx_array.origin, rx_array.B
     l2g = rx -> TxRx(B * rx.position + origin, B * rx.B, rx.directivity)
     [ISM(tx, rx |> l2g, room, config) for rx in rxs]
 end
@@ -38,9 +38,11 @@ function ISM(
 )
     h = ISM_RectangularRoom_core(
         tx.position,     # transmitter position
+        tx.directivity,  # transmitter directivity pattern
+        tx.B,            # transmitter orientation
         rx.position,     # receiver position
-        rx.B,            # receiver orientation
         rx.directivity,  # receiver directivity pattern
+        rx.B,            # receiver orientation
         room.L,          # room size
         room.β,          # reflection coefficients
         room.c,          # velocity of the sound
@@ -68,31 +70,34 @@ end
 
 """
 function ISM_RectangularRoom_core(
-    tx::SVector{3,T},                  # transmitter position
-    rx::SVector{3,T},                  # reveiver position
-    B::SMatrix{3,3,T},                # receiver orientation
-    dp::AbstractDirectivityPattern,     # Receiver directivity pattern
-    L::Tuple{T,T,T},                  # room size (Lx, Ly, Lz)
-    β::Tuple{T,T,T,T,T,T},         # Reflection coefficients (βx1, βx2, βy1, βy2, βz1, βz2)
+    tx_p::SVector{3,T},                 # transmitter position
+    tx_dp::AbstractDirectivityPattern,  # transmitter directivity pattern
+    tx_B::SMatrix{3,3,T},               # receiver orientation
+    rx_p::SVector{3,T},                 # reveiver position
+    rx_dp::AbstractDirectivityPattern,  # receiver directivity pattern
+    rx_B::SMatrix{3,3,T},               # receiver orientation
+    L::Tuple{T,T,T},                    # room size (Lx, Ly, Lz)
+    β::Tuple{T,T,T,T,T,T},              # reflection coefficients (βx1, βx2, βy1, βy2, βz1, βz2)
     c::T,                               # velocity of the wave
     fs::T,                              # sampling frequeyncy
-    order::Tuple{<:Int,<:Int},         # order of reflections; min max
-    Nh::Integer,                        # h lenght in samples
-    Wd::T,                              # Window width
-    ISD::T,                             # Random displacement of image source
+    order::Tuple{I,I},                  # order of reflections; (min, max)
+    Nh::Integer,                        # number of returned samples
+    Wd::T,                              # window width
+    ISD::T,                             # random displacement of image source
     lrng::AbstractRNG                   # random number generator
-)::AbstractVector{T} where {T<:AbstractFloat}
-
+)::AbstractVector{T} where {T<:AbstractFloat, I<:Integer}
     # Allocate memory for the impulose response
     h = zeros(T, Nh)
 
     # Call
     ISM_RectangularRoom_core!(
-        h,      # Container for impulse response
-        tx,     # transmitter position
-        rx,     # receiver position
-        B,      # receiver orientation
-        dp,     # receiver directivity pattern
+        h,      # container for impulse response
+        tx_p,   # transmitter position
+        tx_dp,  # transmitter directivity pattern
+        tx_B,   # transmitter orientation
+        rx_p,   # receiver position
+        rx_dp,  # receiver directivity pattern
+        rx_B,   # receiver orientation
         L,      # room size
         β,      # reflection coefficients
         c,      # velocity of the sound
@@ -102,28 +107,34 @@ function ISM_RectangularRoom_core(
         ISD,    # random image source displacement
         lrng,   # Local random number generator
     )
-
-    return h
+    h
 end
 
 """
 
+References:
+[1] J. B. Allen and D. A. Berkley, “Image method for efficiently simulating small‐room acoustics,” The Journal of the Acoustical Society of America, vol. 65, no. 4, Art. no. 4, Apr. 1979, doi: 10.1121/1.382599.
+[2] P. M. Peterson, “Simulating the response of multiple microphones to a single acoustic source in a reverberant room,” The Journal of the Acoustical Society of America, vol. 80, no. 5, Art. no. 5, Nov. 1986, doi: 10.1121/1.394357.
+[3] E. De Sena, N. Antonello, M. Moonen, and T. van Waterschoot, “On the Modeling of Rectangular Geometries in Room Acoustic Simulations,” IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 23, no. 4, Art. no. 4, Apr. 2015, doi: 10.1109/TASLP.2015.2405476.
+[4] F. Brinkmann, V. Erbes, and S. Weinzierl, “Extending the closed form image source model for source directivity,” presented at the DAGA 2018, Munich, Germany, Mar. 2018.
 """
 function ISM_RectangularRoom_core!(
     h::AbstractVector{<:T},
-    tx::SVector{3,T},                  # transmitter position
-    rx::SVector{3,T},                  # reveiver position
-    B::SMatrix{3,3,T},                # receiver orientation
-    dp::AbstractDirectivityPattern,     # Receiver directivity pattern
-    L::Tuple{T,T,T},                  # room size (Lx, Ly, Lz)
-    β::Tuple{T,T,T,T,T,T},         # Reflection coefficients (βx1, βx2, βy1, βy2, βz1, βz2)
+    tx_p::SVector{3,T},                 # transmitter position
+    tx_dp::AbstractDirectivityPattern,  # transmitter directivity pattern
+    tx_B::SMatrix{3,3,T},               # receiver orientation
+    rx_p::SVector{3,T},                 # reveiver position
+    rx_dp::AbstractDirectivityPattern,  # receiver directivity pattern
+    rx_B::SMatrix{3,3,T},               # receiver orientation
+    L::Tuple{T,T,T},                    # room size (Lx, Ly, Lz)
+    β::Tuple{T,T,T,T,T,T},              # Reflection coefficients (βx1, βx2, βy1, βy2, βz1, βz2)
     c::T,                               # velocity of the wave
     fs::T,                              # sampling frequeyncy
-    order::Tuple{<:Int,<:Int},         # order of reflections; min max
+    order::Tuple{I,I},                  # order of reflections; min max
     Wd::T,                              # Window width
     ISD::T,                             # Random displacement of image source
-    lrng::AbstractRNG                   # random number generator
-)::AbstractVector{T} where {T<:AbstractFloat}
+    lrng::AbstractRNG;                  # random number generator
+) where {T<:AbstractFloat, I<:Integer}
 
     # Number of samples in impulose response
     Nh = length(h)
@@ -140,11 +151,12 @@ function ISM_RectangularRoom_core!(
     o_min, o_max = order
 
     # Allocate memory
-    rd = @MVector zeros(T, 3)       # Container for random displacement
-    tx_isp = @MVector zeros(T, 3)   # Container for relative image source position
-    b = @MVector zeros(T, 6)        # Container for effective reflection coefficient
-    DoA = @MVector zeros(T, 3)      # Container for direction of incoming ray to receiver
-    Rp = @MVector zeros(T, 3)       # 
+    rd = @MVector zeros(T, 3)     # Container for random displacement
+    isp = @MVector zeros(T, 3)    # Container for relative image source position
+    b = @MVector zeros(T, 6)      # Container for effective reflection coefficient
+    rx_DoA = @MVector zeros(T, 3) # Container for direction of incoming ray to receiver
+    tx_DoA = @MVector zeros(T, 3) # Container for direction of ray coming out from transmitter
+    Rp = @MVector zeros(T, 3)     #
 
     # Main loop
     for n = -N[1]:N[1], l = -N[2]:N[2], m = -N[3]:N[3]
@@ -159,37 +171,44 @@ function ISM_RectangularRoom_core!(
             if o_min <= o && (o <= o_max || o_max == -1)
                 # Compute Rp part
                 for i = 1:3
-                    Rp[i] = (1 .- 2 * p[i]) * tx[i] - rx[i]
+                    Rp[i] = (1 .- 2 * p[i]) * tx_p[i] - rx_p[i]
                 end
 
-                # Position of [randomized] image source for given permutation
-                tx_isp .= Rp .+ Rr
+                # image source position for given permutation
+                isp .= Rp .+ Rr
 
                 if ISD > 0.0 && o > 0
-                    # Generate random displacement for the image source
+                    # generate random displacement for the image source
                     randn!(lrng, rd)
-                    tx_isp .+= rd .* ISD
+                    isp .+= rd .* ISD
                 end
 
                 # Distance between receiver and image source
-                dist = norm(tx_isp)
+                d = norm(isp)
 
                 # Propagation time between receiver and image source
-                τ = dist / c
+                τ = d / c
 
-                if τ <= Nh / fs # Check if it still in transfer function range
+                if τ <= Nh / fs # Check if it still in transfer function rangΩ
 
                     # Compute value of reflection coefficients
                     b .= β .^ abs.((n - q, n, l - j, l, m - k, m))
 
-                    # Direction of Arrival of ray
-                    DoA .= tx_isp ./ dist
+                    # Direction of Arrival of ray incoming from image source to receiver
+                    rx_DoA .= isp ./ d
 
                     # Compute receiver directivity gain
-                    DG = directivity_pattern(SVector{3}(DoA), B, dp)
+                    rx_DG = directivity_pattern(SVector{3}(rx_DoA), rx_B, rx_dp)
+
+                    # Direction of Arrival of ray coming out from transmitter to wall
+                    perm = (abs(n - q) + abs(n), abs(l - j) + abs(l), abs(m - k) + abs(m))
+                    tx_DoA .= -rx_DoA .* (-1, -1, -1).^perm
+
+                    # Compute transmitter directivity gain
+                    tx_DG = directivity_pattern(SVector{3}(tx_DoA), tx_B, tx_dp)
 
                     # Compute attenuation coefficient
-                    A = DG * prod(b) / (4π * dist)
+                    A = tx_DG * rx_DG * prod(b) / (4π * d)
 
                     # Compute range of samples in transfer function
                     i_s = max(ceil(Int, (τ - Wd / 2) * fs) + 1, 1)  # start
@@ -206,5 +225,4 @@ function ISM_RectangularRoom_core!(
             end
         end
     end
-    h
 end
