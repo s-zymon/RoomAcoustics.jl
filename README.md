@@ -9,38 +9,32 @@
 
 
 Currently, supported methods:
-* Image Source for rectangular (shoebox) rooms
+* Fast Image Source method for rectangular (shoebox) rooms
+* Transmitter and receiver directivity pattern support
 
 
 # Example
 
 ```julia
-using StaticArrays
-using LinearAlgebra
-
 using RoomAcoustics
+using RoomAcoustics.TxRxModels
 
+sampling_rate = 16e3
+c = 343.0 # Wave propagation velocity
 
-c = 343.0;
-fs = 16000.0;
-rir_Nsamples = 4000;
-β = 0.75;
-room_β = (β, β, β, β, β, β);
-room_L = (10., 10., 3.);
+room = let
+    L = (10.0, 5.0, 3.0)
+    β = fill(0.55, 6) |> Tuple
+    RectangularRoom(c, L, β)
+end
 
+rir_config = let
+    h_len = convert(Int, sampling_rate * 0.50)
+    ISMConfig((0, -1), sampling_rate, h_len)
+end
 
-mic = SVector{3}([5., 5., 1.]);
-source = SVector{3}([1., 9., 2.]);
+rx = [2.2, 4.1, 1.6] |> TxRx
+tx = [2.2, 4.1, 1.7] |> TxRx
 
-
-# Setup configuration
-room = RectangularRoom(c, room_L, room_β);
-rir_config = ISMConfig((0, -1), fs, rir_Nsamples, 8e-3, true, 0.0);
-rx = TxRx(mic);
-tx = TxRx(source);
-
-# Compute transfer function using Image Source Method
-h = ISM(rx, tx, room, rir_config);
-
-
+h = ISM(tx, rx, room, rir_config)
 ```
