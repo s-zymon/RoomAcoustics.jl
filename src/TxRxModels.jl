@@ -4,6 +4,7 @@ using LinearAlgebra
 using StaticArrays
 
 export  directivity_pattern,
+        CardioidFamilyPattern,
         Omnidirectional,
         Subcardioid,
         Cardioid,
@@ -11,7 +12,7 @@ export  directivity_pattern,
         Bidirectional
 export TxRx, TxRxArray
 export uniform_circle, fibonacci_sphere
-export linear_array, circular_array, spherical_array, physical_array
+export linear_array, circular_array, fibonacci_array, physical_array
 
 
 abstract type AbstractDirectivityPattern end
@@ -20,13 +21,19 @@ struct SubcardioidPattern     <: AbstractDirectivityPattern end
 struct CardioidPattern        <: AbstractDirectivityPattern end
 struct HypercardioidPattern   <: AbstractDirectivityPattern end
 struct BidirectionalPattern   <: AbstractDirectivityPattern end
+struct CardioidFamilyPattern{T<:Real} <: AbstractDirectivityPattern
+    ρ::T
+    function CardioidFamilyPattern(ρ::T) where {T<:Real}
+        ρ < 0.0 && ρ > 1.0 && error("argument out of range, 0.0 ≤", ρ, " ≤ 1.0")
+        new{T}(ρ)
+    end
+end
 
 const Omnidirectional = OmnidirectionalPattern()
 const Subcardioid     = SubcardioidPattern()
 const Cardioid        = CardioidPattern()
 const Hypercardioid   = HypercardioidPattern()
 const Bidirectional   = BidirectionalPattern()
-
 
 
 abstract type AbstractTxRx end
@@ -68,6 +75,19 @@ end
 """
 
 """
+function cardioid_pattern(
+    d::SVector{3, <:Real},
+    B::SMatrix{3, 3, <:Real},
+    ρ::Real,
+)::Real
+    r = [1., 0., 0.]
+    ρ + (1-ρ) * r' * B' * d
+end
+
+
+"""
+
+"""
 function directivity_pattern(
     d::SVector{3, <:Real},
     txrx::TxRx,
@@ -79,16 +99,13 @@ end
 """
 
 """
-function cardioid_pattern(
+function directivity_pattern(
     d::SVector{3, <:Real},
     B::SMatrix{3, 3, <:Real},
-    ρ::Real,
+    dp::CardioidFamilyPattern,
 )::Real
-    r = [1., 0., 0.]
-    ρ + (1-ρ) * r' * B' * d
+    cardioid_pattern(d, B, dp.ρ)
 end
-
-
 
 """
 
@@ -170,9 +187,6 @@ function fibonacci_sphere(N::Integer)
     [f(i, offset, up, N) for i = 0:N-1]
 end
 
-
-
-
 function linear_array(N::Integer, L::Real)
     ΔL = L / (N - 1)
     L2 = L / 2
@@ -184,12 +198,10 @@ function circular_array(N::Integer, r::Real)
     [SVector{3}([r * cos(α), r * sin(α), 0]) for α ∈ 0:Δα:2π-Δα]
 end
 
-function spherical_array(N::Integer, r::Real)
+function fibonacci_array(N::Integer, r::Real)
     P = fibonacci_sphere(N)
     [SVector{3}(r .* p) for p in P]
 end
-
-
 
 physical_array = (
     matrix_voice = (
