@@ -4,7 +4,7 @@
 
 
 ```julia
-] add https://codeberg.org/zymon/RoomAcoustics.jl
+] add RoomAcoustics
 ```
 
 
