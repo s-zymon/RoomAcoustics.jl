@@ -203,6 +203,15 @@ function fibonacci_array(N::Integer, r::Real)
     [SVector{3}(r .* p) for p in P]
 end
 
+function tetrahedron_array(r=1.0)
+    [
+        SVector{3}([+1,+1,+1] * r / √3 ),
+        SVector{3}([+1,-1,-1] * r / √3 ),
+        SVector{3}([-1,+1,-1] * r / √3 ),
+        SVector{3}([-1,-1,+1] * r / √3 ),
+    ]
+end
+
 physical_array = (
     matrix_voice = (
         cartesian = [
