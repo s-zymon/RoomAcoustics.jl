@@ -119,10 +119,10 @@ References:
 [4] F. Brinkmann, V. Erbes, and S. Weinzierl, “Extending the closed form image source model for source directivity,” presented at the DAGA 2018, Munich, Germany, Mar. 2018.
 """
 function ISM_RectangularRoom_core!(
-    h::AbstractVector{<:T},
+    h::AbstractVector{<:T},             # container for impulse reponse
     tx_p::SVector{3,T},                 # transmitter position
     tx_dp::AbstractDirectivityPattern,  # transmitter directivity pattern
-    tx_B::SMatrix{3,3,T},               # receiver orientation
+    tx_B::SMatrix{3,3,T},               # transmitter orientation
     rx_p::SVector{3,T},                 # reveiver position
     rx_dp::AbstractDirectivityPattern,  # receiver directivity pattern
     rx_B::SMatrix{3,3,T},               # receiver orientation
@@ -136,7 +136,7 @@ function ISM_RectangularRoom_core!(
     lrng::AbstractRNG;                  # random number generator
 ) where {T<:AbstractFloat, I<:Integer}
 
-    # Number of samples in impulose response
+    # Number of samples in impulse response
     Nh = length(h)
 
     # Samples to distance coefficient [m]

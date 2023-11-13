@@ -12,7 +12,9 @@ using DSP: conv
 include("TxRxModels.jl")
 export TxRxModels
 using .TxRxModels
-using .TxRxModels: AbstractDirectivityPattern
+using .TxRxModels:
+    AbstractDirectivityPattern,
+    AbstractTxRx
 
 include("types.jl")
 include("utils.jl")
