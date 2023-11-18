@@ -1,5 +1,6 @@
 module TxRxModels
 
+using Statistics
 using LinearAlgebra
 using StaticArrays
 
@@ -196,6 +197,12 @@ end
 function circular_array(N::Integer, r::Real)
     Δα = 2π / N
     [SVector{3}([r * cos(α), r * sin(α), 0]) for α ∈ 0:Δα:2π-Δα]
+end
+
+function square_array(N::I, M::I, Lx::T, Ly::T) where {I<:Integer, T<:Real}
+    Δx, Δy = Lx / N, Ly / N
+    p = [SVector{3}([Δx*i, Δy*j, 0.0]) for i = 1:N for j = 1:M]
+    p .- [mean(p)]
 end
 
 function fibonacci_array(N::Integer, r::Real)
