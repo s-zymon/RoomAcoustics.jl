@@ -6,7 +6,6 @@ using Statistics
 using Random
 using Random: GLOBAL_RNG
 
-using LoopVectorization
 using DSP: conv
 
 include("TxRxModels.jl")

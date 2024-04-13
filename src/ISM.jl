@@ -215,7 +215,7 @@ function ISM_RectangularRoom_core!(
                     i_e = min(floor(Int, (τ + Wd / 2) * fs) + 1, Nh) # end
 
                     # Insert yet another impulse into transfer function
-                    @turbo for i ∈ i_s:i_e
+                    for i ∈ i_s:i_e
                         t = (i - 1) / fs - τ # time signature
                         w = 0.5 * (1.0 + cos(2π * t / Wd)) # Hann window
                         x = π * fs * t + eps()
